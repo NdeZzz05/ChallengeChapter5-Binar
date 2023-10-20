@@ -1,27 +1,31 @@
-import React, { useState } from "react";
-import { useLoginUser } from "../../services/auth/login_user";
+import React, { useEffect, useState } from "react";
+import bgfilm from "../../assets/img/bgFilm.jpg";
+import { Footer } from "../../assets/components/Footer";
+import {
+  Box,
+  Button,
+  Container,
+  FormControl,
+  FormErrorMessage,
+  FormLabel,
+  Heading,
+  Input,
+  Stack,
+} from "@chakra-ui/react";
+import { useFormik } from "formik";
+import * as yup from "yup";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { useNavigate } from "react-router-dom";
+import { LogoNavbar } from "../../assets/components/LogoNavbar";
+import { useLoginUser } from "../../services/auth/login_user";
+import { GoogleLogin } from "@react-oauth/google";
 
 export const LoginPage = () => {
   const navigate = useNavigate();
   const [Password, setPassword] = useState("");
   const [Email, setEmail] = useState("");
-  const { mutate: loginUser, isSuccess, error } = useLoginUser();
-
-  const handleInput = (e) => {
-    if (e) {
-      if (e.target.id === "email") {
-        setEmail(e.target.value);
-      }
-      if (e.target.id === "password") {
-        setPassword(e.target.value);
-      }
-    }
-  };
-  console.log(Email, "email");
-  console.log(Password, "password");
-  console.log(isSuccess, "isSucces");
-  console.log(error, "error");
+  const { mutate: loginUser, data } = useLoginUser();
 
   const handleLoginUser = () => {
     loginUser({
@@ -30,104 +34,183 @@ export const LoginPage = () => {
     });
   };
 
+  const formik = useFormik({
+    initialValues: {
+      username: "",
+      email: "",
+      password: "",
+    },
+    onSubmit: handleLoginUser,
+    validationSchema: yup.object().shape({
+      email: yup
+        .string()
+        .required("Mohon isi di kolom berikut")
+        .email("Masukkan email yang valid"),
+      password: yup.string().required("Mohon isi di kolom berikut"),
+    }),
+  });
+
+  const handleForm = (event) => {
+    const { target } = event;
+    formik.setFieldValue(target.name, target.value);
+    if (target.name === "email") {
+      setEmail(target.value);
+    }
+    if (target.name === "password") {
+      setPassword(target.value);
+    }
+  };
+
+  useEffect(() => {
+    if (data?.data?.data?.token) {
+      toast.success("Login Berhasil", {
+        position: "top-right",
+        autoClose: 1500,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+      });
+      setTimeout(() => {
+        window.location.href = "/homepage";
+      }, 2000);
+    } else if (data?.response?.data?.message === "Wrong password") {
+      toast.error("Password atau email anda salah", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+      });
+    } else if (data?.response?.data?.message === "User is not found") {
+      toast.error("Pengguna tidak ditemukan", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+      });
+    } else if (data?.response?.data?.message === "Email is not valid") {
+      toast.error("Email salah atau tidak benar", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+      });
+    }
+  }, [data]);
+
   return (
     <>
-      <div>
-        <input onChange={handleInput} placeholder="email" type="text" id="email" className="border" />
-        <input onChange={handleInput} placeholder="password" type="password" id="password" className="border" />
-        <button
-          onClick={() => {
-            handleLoginUser();
-          }}
-        >
-          Login
-        </button>
-        <div onClick={() => navigate(`/`)}>Register</div>
-      </div>
-
-      <div className="relative overflow-hidden rounded-lg bg-cover bg-no-repeat p-12 text-center">
-        <section className="bg-gray-50 dark:bg-gray-900">
-          <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
-            <a href="#" className="text-red-600 font-extrabold flex items-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white">
-              MovieZzz
-            </a>
-            <div className="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
-              <div className="p-6 space-y-4 md:space-y-6 sm:p-8">
-                <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">Sign in to your account</h1>
-                <form className="space-y-4 md:space-y-6">
-                  <div>
-                    <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                      Your email
-                    </label>
-                    <input
-                      onChange={handleInput}
-                      placeholder="email"
-                      type="text"
-                      id="email"
-                      className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="password" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                      Password
-                    </label>
-                    <input
-                      onChange={handleInput}
-                      placeholder="password"
-                      type="password"
-                      id="password"
-                      className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                      required
-                    />
-                  </div>
-                  {/* <div className="flex items-center justify-between">
-                    <div className="flex items-start">
-                      <div className="flex items-center h-5">
-                        <input
-                          id="remember"
-                          aria-describedby="remember"
-                          type="checkbox"
-                          className="w-4 h-4 border border-gray-300 rounded bg-gray-50 focus:ring-3 focus:ring-primary-300 dark:bg-gray-700 dark:border-gray-600 dark:focus:ring-primary-600 dark:ring-offset-gray-800"
-                          required
-                        />
-                      </div>
-                      <div className="ml-3 text-sm">
-                        <label htmlFor="remember" className="text-gray-500 dark:text-gray-300">
-                          Remember me
-                        </label>
-                      </div>
-                    </div>
-                    <a href="#" className="text-sm font-medium text-primary-600 hover:underline dark:text-primary-500">
-                      Forgot password?
-                    </a>
-                  </div> */}
-                  <button
-                    onClick={() => {
-                      handleLoginUser();
-                    }}
-                    className="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover-bg-primary-700 dark:focus:ring-primary-800"
-                  >
-                    Sign in
-                  </button>
-                  <p className="text-sm font-light text-gray-500 dark:text-gray-400">
-                    Don’t have an account yet?{" "}
-                    <a href="#" className="font-medium text-primary-600 hover:underline dark:text-primary-500">
-                      Sign up
-                    </a>
-                    <div
-                      onClick={() => {
-                        navigate(`/`);
+      <div className="w-screen h-screen">
+        <LogoNavbar />
+        <div className="w-screen h-screen flex justify-center items-center absolute z-20 px-[1rem]">
+          <div className="w-[25rem] bg-black bg-opacity-70 flex rounded-md">
+            <Container py="4">
+              <Heading
+                color="white"
+                className="flex justify-center items-center"
+              >
+                Login
+              </Heading>
+              <Box padding="4" border="" borderRadius="4px" mt="4" px="8">
+                <form onSubmit={formik.handleSubmit}>
+                  <Stack spacing="1">
+                    <FormControl isInvalid={formik.errors.email} isRequired>
+                      <FormLabel color="white">Email</FormLabel>
+                      <Input
+                        onChange={handleForm}
+                        type="email"
+                        name="email"
+                        placeholder="email"
+                        backgroundColor="white"
+                        color="black"
+                      />
+                      <FormErrorMessage>{formik.errors.email}</FormErrorMessage>
+                    </FormControl>
+                    <FormControl isInvalid={formik.errors.password} isRequired>
+                      <FormLabel color="white">Password</FormLabel>
+                      <Input
+                        onChange={handleForm}
+                        type="password"
+                        name="password"
+                        placeholder="password"
+                        backgroundColor="white"
+                        color="black"
+                      />
+                      <FormErrorMessage>
+                        {formik.errors.password}
+                      </FormErrorMessage>
+                    </FormControl>
+                    <Button
+                      type="submit"
+                      mt="6"
+                      color="white"
+                      rounded="full"
+                      bg="#db0000"
+                      _hover={{
+                        bg: "#831010",
                       }}
                     >
-                      register
-                    </div>
-                  </p>
+                      Login Account
+                    </Button>
+                    <ToastContainer
+                      position="top-right"
+                      autoClose={5000}
+                      hideProgressBar={false}
+                      newestOnTop={false}
+                      closeOnClick
+                      rtl={false}
+                      pauseOnFocusLoss
+                      draggable
+                      pauseOnHover
+                      theme="colored"
+                    />
+                  </Stack>
+                  <div className="flex justify-center items-center mt-[1rem]">
+                    <GoogleLogin
+                      onSuccess={(credentialResponse) => {
+                        console.log(credentialResponse);
+                      }}
+                      onError={() => {
+                        console.log("Login Failed");
+                      }}
+                      className="custom-google-button"
+                    />
+                  </div>
                 </form>
-              </div>
-            </div>
+                <div className="text-white font-thin flex justify-center items-center pt-[1rem]">
+                  Belum punya akun?
+                  <span
+                    className=" cursor-pointer font-medium pl-[0.3rem] inline-block"
+                    onClick={() => navigate(`/register`)}
+                  >
+                    Daftar sekarang
+                  </span>
+                </div>
+              </Box>
+            </Container>
           </div>
-        </section>
+        </div>
+        <div className="absolute z-10 bg-black opacity-40 w-screen h-screen"></div>
+        <img
+          src={bgfilm}
+          alt="background"
+          className="object-cover h-full w-screen"
+        />
+        <Footer />
       </div>
     </>
   );
