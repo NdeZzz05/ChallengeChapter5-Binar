@@ -1,21 +1,25 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Navbar } from "../assets/components/Navbar";
 import bgfilm from "../assets/img/bgFilm.jpg";
 import { useNavigate } from "react-router-dom";
 import { Footer } from "../assets/components/Footer";
-import Pagination from "@mui/material/Pagination";
-import Stack from "@mui/material/Stack";
 import { useDataPopular } from "../services/get-data-movie-Popular-V4";
+import Skeleton from "react-loading-skeleton";
 
 export const AllMovie = () => {
   const navigate = useNavigate();
   const [Page, setPage] = useState(1);
+  const [showSkeleton, setShowSkeleton] = useState(true);
 
   const { data: dataPopular } = useDataPopular({ page: Page, language: "en-US" });
 
-  const handleChange = (event, value) => {
-    setPage(value);
-  };
+  useEffect(() => {
+    if (dataPopular) {
+      setTimeout(() => {
+        setShowSkeleton(false);
+      }, 800);
+    }
+  }, [dataPopular]);
 
   return (
     <>
@@ -29,16 +33,13 @@ export const AllMovie = () => {
           <div className="absolute inset-[-2px] h-100 bg-gradient-to-b from-transparent to-black bottom-1/2 transform"></div>
         </div>
         <div className="w-screen bg-black flex flex-wrap">
-          <Stack spacing={2} className="w-screen flex flex-col justify-center items-center bg-black py-[3rem]">
-            <Pagination count={10} page={Page} onChange={handleChange} className="Pagination-Utama bg-white" />
-          </Stack>
-          {dataPopular?.results.map((value) => {
+          {dataPopular?.data.map((value) => {
             return (
               <div className="m-auto w-[15rem] h-[32rem] cursor-pointer" key={value.id} onClick={() => navigate(`/detail/${value.id}`)}>
-                <img src={`https://image.tmdb.org/t/p/original/${value.poster_path}`} alt="" className="w-[15rem] m-auto rounded-md hover:scale-105" />
+                {showSkeleton ? <Skeleton width="15rem" height="22rem" /> : <img src={`https://image.tmdb.org/t/p/original/${value.poster_path}`} alt="" className="w-[15rem] m-auto rounded-md hover:scale-105" />}
                 <div className="pt-[1rem] pl-[0.2rem]">
-                  <h6 className="text-white text-[1.2rem] font-semibold">{value.original_title}</h6>
-                  <p className="text-white font-thin italic">{value.release_date}</p>
+                  {showSkeleton ? <Skeleton width="10rem" height="1.5rem" /> : <h6 className="text-white text-[1.2rem] font-semibold">{value.original_title}</h6>}
+                  {showSkeleton ? <Skeleton width="7rem" height="1.5rem" /> : <p className="text-white font-thin italic">{value.release_date}</p>}
                 </div>
               </div>
             );
