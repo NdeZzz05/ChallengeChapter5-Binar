@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import iconstar from "../assets/img/star.png";
 
@@ -6,6 +6,7 @@ import "swiper/css";
 import "swiper/css/pagination";
 import "swiper/css/navigation";
 import "../assets/css/index.css";
+import "react-loading-skeleton/dist/skeleton.css";
 
 import { Autoplay, Pagination, Navigation } from "swiper/modules";
 import { useDataNowPlaying } from "../services/get-data-movie-NowPlaying";
@@ -13,13 +14,22 @@ import { Navbar } from "../assets/components/Navbar";
 import { useNavigate } from "react-router-dom";
 import { Footer } from "../assets/components/Footer";
 import { useDataPopular } from "../services/get-data-movie-Popular-V4";
+import Skeleton from "react-loading-skeleton";
 
 export const HomePage = () => {
   const navigate = useNavigate();
 
   const { data: nowPlayingData } = useDataNowPlaying({ page: 1, language: "en-US" });
-
   const { data: dataPopular } = useDataPopular({ page: 1, language: "en-US" });
+  const [showSkeleton, setShowSkeleton] = useState(true);
+
+  useEffect(() => {
+    if (dataPopular) {
+      setTimeout(() => {
+        setShowSkeleton(false);
+      }, 800);
+    }
+  }, [dataPopular]);
 
   return (
     <>
@@ -40,7 +50,7 @@ export const HomePage = () => {
             modules={[Autoplay, Pagination, Navigation]}
             className="mySwiper"
           >
-            {nowPlayingData?.results?.slice(0, 5).map((value) => {
+            {nowPlayingData?.data?.slice(0, 5).map((value) => {
               return (
                 <SwiperSlide key={value.id}>
                   <img src={`https://image.tmdb.org/t/p/original/${value.backdrop_path}`} alt="" className="bgUtama w-screen" />
@@ -71,13 +81,13 @@ export const HomePage = () => {
           </div>
         </div>
         <div className="w-screen flex">
-          {dataPopular?.results?.slice(0, 4).map((value) => {
+          {dataPopular?.data?.slice(0, 5).map((value) => {
             return (
               <div className="flex flex-wrap w-[16rem] m-auto cursor-pointer" key={value.id} onClick={() => navigate(`/detail/${value.id}`)}>
-                <img src={`https://image.tmdb.org/t/p/original/${value.poster_path}`} alt="" className="w-[15rem] m-auto rounded-md hover:scale-105" />
+                {showSkeleton ? <Skeleton width="15rem" height="22rem" /> : <img src={`https://image.tmdb.org/t/p/original/${value.poster_path}`} alt="" className="w-[15rem] m-auto rounded-md hover:scale-105" />}
                 <div className="pt-[1rem] pl-[1rem] flex flex-col">
-                  <h6 className="text-white text-[1.2rem] font-semibold">{value.original_title}</h6>
-                  <p className="text-white font-thin italic">{value.release_date}</p>
+                  {showSkeleton ? <Skeleton width="10rem" height="1.5rem" /> : <h6 className="text-white text-[1.2rem] font-semibold">{value.original_title}</h6>}
+                  {showSkeleton ? <Skeleton width="7rem" height="1.5rem" /> : <p className="text-white font-thin italic">{value.release_date}</p>}
                 </div>
               </div>
             );
