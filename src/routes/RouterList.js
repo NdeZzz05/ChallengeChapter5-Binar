@@ -6,12 +6,13 @@ import { AllMovie } from "../pages/AllMovie";
 import { SearchMovie } from "../pages/SearchMovie";
 import { LoginPage } from "../pages/auth/LoginPage";
 import { RegisterPage } from "../pages/auth/RegisterPage";
+import { ResponsiveDesign } from "../pages/ResponsiveDesign";
 
 export const RouterList = () => {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<LoginPage />}></Route>
+        <Route path="/" element={<ResponsiveDesign />}></Route>
         <Route path="/register" element={<RegisterPage />}></Route>
         <Route path="/homepage" element={<HomePage />}></Route>
         <Route path="/detail/:id" element={<DetailsMovie />}></Route>
